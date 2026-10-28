@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Detect serverless environments (e.g. Vercel)
+IS_SERVERLESS = os.getenv("VERCEL") is not None or os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
+
 # Load .env file
 load_dotenv(BASE_DIR / ".env")
 
@@ -17,8 +20,11 @@ class Settings:
     API_V1_STR: str = os.getenv("API_V1_STR", "/api/v1")
     BASE_DIR: Path = BASE_DIR
 
-    # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/invoices.db")
+    # Database: on Vercel / serverless, write to /tmp
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        "sqlite:////tmp/invoices.db" if IS_SERVERLESS else f"sqlite:///{BASE_DIR}/invoices.db"
+    )
 
     # LLM Settings
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "mock").lower()
@@ -40,13 +46,16 @@ class Settings:
 
     # Storage Paths
     DATA_DIR: Path = BASE_DIR / "data"
-    MOCK_INBOX_DIR: Path = BASE_DIR / "data" / "mock_inbox"
+    MOCK_INBOX_DIR: Path = Path("/tmp/mock_inbox") if IS_SERVERLESS else (BASE_DIR / "data" / "mock_inbox")
     SAMPLES_DIR: Path = BASE_DIR / "data" / "samples"
-    EXPORTS_DIR: Path = BASE_DIR / "exports"
+    EXPORTS_DIR: Path = Path("/tmp/exports") if IS_SERVERLESS else (BASE_DIR / "exports")
 
 
 settings = Settings()
-os.makedirs(settings.EXPORTS_DIR, exist_ok=True)
-os.makedirs(settings.MOCK_INBOX_DIR, exist_ok=True)
-os.makedirs(settings.SAMPLES_DIR, exist_ok=True)
+try:
+    os.makedirs(settings.EXPORTS_DIR, exist_ok=True)
+    os.makedirs(settings.MOCK_INBOX_DIR, exist_ok=True)
+    os.makedirs(settings.SAMPLES_DIR, exist_ok=True)
+except OSError:
+    pass
 

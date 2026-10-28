@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from src.database.connection import get_db
 from src.database.models import Invoice, Vendor, ValidationLog
+from config.settings import settings
 from src.ingestion.email_client import get_email_ingestor
 from src.ingestion.parser import InvoiceFileParser
 from src.reporting.excel_service import ExcelReportingService
@@ -163,7 +164,7 @@ def get_invoice_stats(db: Session = Depends(get_db)):
 @router.get("/samples")
 def list_sample_invoices():
     """Retorna la lista de facturas de muestra disponibles para pruebas de demostración."""
-    samples_dir = Path("data/samples")
+    samples_dir = settings.SAMPLES_DIR
     if not samples_dir.exists():
         return []
     result = []
@@ -187,7 +188,7 @@ def list_sample_invoices():
 @router.post("/samples/{filename}/process", response_model=InvoiceDetailResponse)
 def process_sample_invoice(filename: str, db: Session = Depends(get_db)):
     """Procesa una factura de muestra preconfigurada directamente sin necesidad de subir archivo."""
-    sample_path = Path("data/samples") / filename
+    sample_path = settings.SAMPLES_DIR / filename
     if not sample_path.exists() or not sample_path.is_file():
         raise HTTPException(status_code=404, detail=f"Muestra '{filename}' no encontrada.")
 
