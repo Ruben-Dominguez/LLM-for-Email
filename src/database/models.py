@@ -64,7 +64,7 @@ class Invoice(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     invoice_number = Column(String(100), index=True, nullable=False)
-    uuid = Column(String(100), unique=True, index=True, nullable=True)  # Folio Fiscal / UUID
+    uuid = Column(String(100), index=True, nullable=True)  # Folio Fiscal / UUID
     vendor_id = Column(Integer, ForeignKey("vendors.id"), nullable=True)
     po_id = Column(Integer, ForeignKey("purchase_orders.id"), nullable=True)
     

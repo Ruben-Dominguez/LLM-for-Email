@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, 
 from sqlalchemy.orm import Session
 
 from src.database.connection import get_db
-from src.database.models import Invoice, Vendor
+from src.database.models import Invoice, Vendor, ValidationLog
 from src.ingestion.email_client import get_email_ingestor
 from src.ingestion.parser import InvoiceFileParser
 from src.reporting.excel_service import ExcelReportingService
@@ -65,6 +65,7 @@ def sync_emails(limit: int = Query(10, ge=1, le=50), db: Session = Depends(get_d
                 processed_invoices.append(_map_invoice_summary(inv))
 
             except Exception as e:
+                db.rollback()
                 logger.error(f"Error procesando {att.filename}: {e}")
                 errors.append(f"Error en '{att.filename}': {str(e)}")
 

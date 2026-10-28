@@ -1,9 +1,11 @@
 from datetime import datetime, date
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class InvoiceItemResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     description: str
     quantity: float
@@ -11,11 +13,10 @@ class InvoiceItemResponse(BaseModel):
     total_price: float
     accounting_account_code: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 
 class ValidationLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     rule_name: str
     passed: bool
@@ -23,11 +24,10 @@ class ValidationLogResponse(BaseModel):
     message: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class InvoiceSummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     invoice_number: str
     uuid: Optional[str] = None
@@ -44,16 +44,12 @@ class InvoiceSummaryResponse(BaseModel):
     source_file: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class InvoiceDetailResponse(InvoiceSummaryResponse):
+    model_config = ConfigDict(from_attributes=True)
+
     items: List[InvoiceItemResponse] = []
     validation_logs: List[ValidationLogResponse] = []
-
-    class Config:
-        from_attributes = True
 
 
 class SyncEmailsResponse(BaseModel):

@@ -127,11 +127,11 @@ class MockInvoiceExtractor(BaseInvoiceExtractor):
         vendor_tax_id = rfc_match.group(1).upper() if rfc_match else "DESCONOCIDO"
 
         # 2. Extraer Razón Social
-        name_match = re.search(r"Razón Social:\s*([^\n\r]+)", document_text, re.IGNORECASE)
+        name_match = re.search(r"Raz[óo]n Social:\s*([^\n\r]+)", document_text, re.IGNORECASE)
         vendor_name = name_match.group(1).strip() if name_match else "Proveedor No Identificado"
 
         # 3. Extraer Folio / Número de Factura
-        inv_match = re.search(r"(?:Número de Factura|Factura No|Folio):\s*([A-Z0-9\-_]+)", document_text, re.IGNORECASE)
+        inv_match = re.search(r"(?:N[úu]mero de Factura|Factura\s*No|Folio|Invoice\s*(?:No|Number)):\s*([A-Z0-9\-_]+)", document_text, re.IGNORECASE)
         invoice_number = inv_match.group(1).strip() if inv_match else "FAC-UNKNOWN"
 
         # 4. Extraer UUID / Folio Fiscal
@@ -139,11 +139,11 @@ class MockInvoiceExtractor(BaseInvoiceExtractor):
         uuid_val = uuid_match.group(1).lower() if uuid_match else None
 
         # 5. Extraer Orden de Compra (PO)
-        po_match = re.search(r"(?:Orden de Compra|PO|Purchase Order):\s*([A-Z0-9\-_]+)", document_text, re.IGNORECASE)
+        po_match = re.search(r"(?:Orden de Compra|PO|Purchase Order|O\.?C\.?):\s*([A-Z0-9\-_]+)", document_text, re.IGNORECASE)
         po_number = po_match.group(1).strip() if po_match else None
 
         # 6. Extraer Fecha
-        date_match = re.search(r"(?:Fecha de Emisión|Fecha):\s*(\d{4}-\d{2}-\d{2})", document_text, re.IGNORECASE)
+        date_match = re.search(r"(?:Fecha(?:\s+de\s+Emisi[óo]n)?):\s*(\d{4}-\d{2}-\d{2})", document_text, re.IGNORECASE)
         issue_date = date_match.group(1) if date_match else "2026-10-28"
 
         # 7. Extraer Moneda
@@ -154,10 +154,11 @@ class MockInvoiceExtractor(BaseInvoiceExtractor):
         subtotal_match = re.search(r"SUBTOTAL:\s*\$?\s*([\d,]+\.?\d*)", document_text, re.IGNORECASE)
         subtotal = float(subtotal_match.group(1).replace(",", "")) if subtotal_match else 0.0
 
-        tax_match = re.search(r"(?:IVA|IMPUESTOS.*):\s*\$?\s*([\d,]+\.?\d*)", document_text, re.IGNORECASE)
+        tax_match = re.search(r"(?:IVA|IMPUESTOS.*?):\s*\$?\s*([\d,]+\.?\d*)", document_text, re.IGNORECASE)
         tax_amount = float(tax_match.group(1).replace(",", "")) if tax_match else 0.0
 
-        total_match = re.search(r"TOTAL:\s*\$?\s*([\d,]+\.?\d*)", document_text, re.IGNORECASE)
+        # Evitar hacer match con 'SUBTOTAL:' asegurando límite de palabra previo que no sea 'SUB'
+        total_match = re.search(r"(?<!SUB)\bTOTAL:\s*\$?\s*([\d,]+\.?\d*)", document_text, re.IGNORECASE)
         total_amount = float(total_match.group(1).replace(",", "")) if total_match else subtotal + tax_amount
 
         # 9. Extraer Conceptos / Partidas
