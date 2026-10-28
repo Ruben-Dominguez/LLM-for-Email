@@ -26,3 +26,4 @@ class ValidationReport:
     @property
     def has_warnings(self) -> bool:
         return any(not r.passed and r.severity == "WARNING" for r in self.results)
+

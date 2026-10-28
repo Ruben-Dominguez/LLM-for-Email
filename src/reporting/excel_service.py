@@ -132,3 +132,4 @@ class ExcelReportingService:
         output = io.BytesIO()
         wb.save(output)
         return output.getvalue()
+

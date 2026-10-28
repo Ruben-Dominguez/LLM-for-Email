@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import settings
@@ -52,10 +54,24 @@ app.include_router(health.router, prefix=settings.API_V1_STR)
 app.include_router(invoices.router, prefix=settings.API_V1_STR)
 
 
-@app.get("/", tags=["Root"])
-def root():
+FRONTEND_FILE = Path(__file__).resolve().parent.parent / "frontend" / "index.html"
+
+
+@app.get("/", response_class=HTMLResponse, tags=["Dashboard"], include_in_schema=False)
+def dashboard():
+    """Sirve la interfaz web moderna (Dashboard) para usuarios y demostraciones."""
+    if FRONTEND_FILE.exists():
+        return HTMLResponse(content=FRONTEND_FILE.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>AutoInvoice AI</h1><p>Frontend en construcción. Consulte <a href='/docs'>/docs</a>.</p>")
+
+
+@app.get("/api", tags=["Root"])
+def root_api():
+    """Información general de la API REST."""
     return {
         "message": f"Bienvenido a {settings.PROJECT_NAME}",
         "docs_url": "/docs",
+        "redoc_url": "/redoc",
         "api_v1": settings.API_V1_STR,
     }
+

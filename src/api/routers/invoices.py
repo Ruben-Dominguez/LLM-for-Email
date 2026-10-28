@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Response
 from sqlalchemy.orm import Session
@@ -136,6 +137,67 @@ def export_invoices_excel(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+@router.get("/stats")
+def get_invoice_stats(db: Session = Depends(get_db)):
+    """Retorna métricas consolidadas para el dashboard ejecutivo."""
+    invoices = db.query(Invoice).all()
+    total = len(invoices)
+    validated = sum(1 for inv in invoices if inv.status == "VALIDATED")
+    rejected = sum(1 for inv in invoices if inv.status == "REJECTED")
+    pending = sum(1 for inv in invoices if inv.status == "PENDING_REVIEW")
+    total_amount = sum(inv.total_amount for inv in invoices if inv.status == "VALIDATED")
+    approval_rate = round((validated / total * 100), 1) if total > 0 else 0.0
+
+    return {
+        "total_invoices": total,
+        "validated_count": validated,
+        "rejected_count": rejected,
+        "pending_count": pending,
+        "total_amount_validated": total_amount,
+        "approval_rate": approval_rate,
+    }
+
+
+@router.get("/samples")
+def list_sample_invoices():
+    """Retorna la lista de facturas de muestra disponibles para pruebas de demostración."""
+    samples_dir = Path("data/samples")
+    if not samples_dir.exists():
+        return []
+    result = []
+    descriptions = {
+        "factura_valida_tech.txt": {"title": "Factura Válida (Tecnología)", "type": "valid", "desc": "Proveedor activo, orden de compra coincidente y aritmética correcta."},
+        "factura_valida_papeleria.txt": {"title": "Factura Válida (Papelería)", "type": "valid", "desc": "Suministros de oficina con clasificación RAG a gastos operativos."},
+        "factura_error_aritmetico.txt": {"title": "Error Aritmético", "type": "invalid", "desc": "Discrepancia forzada en suma de subtotal + IVA contra el total."},
+        "factura_proveedor_invalido.txt": {"title": "Proveedor No Registrado", "type": "invalid", "desc": "RFC desconocido en el catálogo de proveedores activos."},
+    }
+    for file in sorted(samples_dir.glob("*.txt")):
+        meta = descriptions.get(file.name, {"title": file.name, "type": "neutral", "desc": "Muestra de prueba"})
+        result.append({
+            "filename": file.name,
+            "title": meta["title"],
+            "type": meta["type"],
+            "description": meta["desc"],
+        })
+    return result
+
+
+@router.post("/samples/{filename}/process", response_model=InvoiceDetailResponse)
+def process_sample_invoice(filename: str, db: Session = Depends(get_db)):
+    """Procesa una factura de muestra preconfigurada directamente sin necesidad de subir archivo."""
+    sample_path = Path("data/samples") / filename
+    if not sample_path.exists() or not sample_path.is_file():
+        raise HTTPException(status_code=404, detail=f"Muestra '{filename}' no encontrada.")
+
+    text_content = sample_path.read_text(encoding="utf-8")
+    service = InvoiceProcessingService(db)
+    try:
+        inv = service.process_invoice_text(text_content, source_file=filename)
+        return inv
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error procesando muestra: {str(e)}")
 
 
 @router.get("/{invoice_id}", response_model=InvoiceDetailResponse)

@@ -170,3 +170,4 @@ def get_email_ingestor() -> BaseEmailIngestor:
     if settings.EMAIL_SOURCE == "imap":
         return IMAPEmailIngestor()
     return MockEmailIngestor()
+

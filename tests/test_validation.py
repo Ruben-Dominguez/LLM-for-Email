@@ -105,3 +105,4 @@ def test_validation_arithmetic_error(memory_db):
     report = validator.validate(invoice_data)
     assert report.overall_status == "REJECTED"
     assert any("ARITHMETIC" in r.rule_name and not r.passed for r in report.results)
+

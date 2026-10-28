@@ -27,3 +27,4 @@ Cantidad | Descripción | P. Unitario | Importe
 SUBTOTAL: $5,000.00
 IMPUESTOS TRASLADADOS (IVA 16%): $800.00
 TOTAL: $5,800.00
+

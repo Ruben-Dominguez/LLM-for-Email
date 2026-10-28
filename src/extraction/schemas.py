@@ -26,3 +26,4 @@ class ExtractedInvoiceData(BaseModel):
     items: List[ExtractedInvoiceItem] = Field(default_factory=list, description="Lista de partidas o conceptos de la factura.")
     confidence_score: float = Field(default=0.95, description="Puntuación de confianza estimada por el modelo (0.0 a 1.0).")
     notes: Optional[str] = Field(None, description="Observaciones o notas de discrepancia detectadas.")
+

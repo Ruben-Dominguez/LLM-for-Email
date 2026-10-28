@@ -39,3 +39,4 @@ class InvoiceFileParser:
         except Exception as e:
             logger.error(f"Error al extraer texto del PDF: {e}")
             return ""
+

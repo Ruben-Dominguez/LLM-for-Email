@@ -21,3 +21,4 @@ class EmailMessagePayload:
     received_at: datetime
     body_text: str
     attachments: List[EmailAttachment] = field(default_factory=list)
+

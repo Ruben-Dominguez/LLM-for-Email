@@ -42,3 +42,4 @@ def test_semantic_catalog_matcher(memory_db):
     code_office, score_office = matcher.match_item("50 cajas de hojas de papel bond para oficina")
     assert code_office == "601.02"
     assert score_office > 0.1
+

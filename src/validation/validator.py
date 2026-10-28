@@ -300,3 +300,4 @@ class InvoiceSQLValidator:
             )
 
         return results
+

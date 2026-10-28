@@ -27,3 +27,4 @@ def health_check(db: Session = Depends(get_db)):
         email_source=settings.EMAIL_SOURCE,
         timestamp=datetime.now(timezone.utc),
     )
+

@@ -32,3 +32,4 @@ def test_mock_extractor_valid_invoice():
     assert len(extracted.items) == 1
     assert extracted.items[0].quantity == 1.0
     assert extracted.items[0].unit_price == 20000.0
+

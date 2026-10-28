@@ -102,3 +102,37 @@ def test_export_excel():
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         assert len(response.content) > 1000  # Archivo binario Excel con contenido
+
+
+def test_dashboard_frontend():
+    with TestClient(app) as client:
+        response = client.get("/")
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+        assert "AutoInvoice" in response.text
+
+
+def test_invoice_stats():
+    with TestClient(app) as client:
+        response = client.get("/api/v1/invoices/stats")
+        assert response.status_code == 200
+        data = response.json()
+        assert "total_invoices" in data
+        assert "validated_count" in data
+        assert "rejected_count" in data
+        assert "approval_rate" in data
+
+
+def test_samples_and_direct_processing():
+    with TestClient(app) as client:
+        samples_resp = client.get("/api/v1/invoices/samples")
+        assert samples_resp.status_code == 200
+        samples = samples_resp.json()
+        assert len(samples) > 0
+
+        # Probar procesamiento directo de la muestra tech válida
+        process_resp = client.post("/api/v1/invoices/samples/factura_valida_tech.txt/process")
+        assert process_resp.status_code == 200
+        data = process_resp.json()
+        assert data["invoice_number"] == "FAC-2026-901"
+        assert data["status"] in ("VALIDATED", "REJECTED")

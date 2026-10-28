@@ -138,11 +138,13 @@ flowchart TD
    python -m src.database.seed
    ```
 
-6. **Iniciar el servidor API REST:**
+6. **Iniciar el servidor web:**
    ```bash
    uvicorn src.api.main:app --reload --port 8000
    ```
-   * Accede a la documentación interactiva en: [http://localhost:8000/docs](http://localhost:8000/docs)
+   * **Dashboard Web Ejecutivo:** [http://localhost:8000](http://localhost:8000) (interfaz moderna para carga y auditoría)
+   * **Documentación Técnica Swagger:** [http://localhost:8000/docs](http://localhost:8000/docs)
+   * **Documentación ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
 ---
 
@@ -192,3 +194,4 @@ pytest -v
 ## 7. Licencia y Créditos
 
 Desarrollado con arquitectura limpia y buenas prácticas de ingeniería de software para el área de finanzas y automatización contable. Licencia MIT.
+

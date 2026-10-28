@@ -67,3 +67,4 @@ def build_user_prompt(document_text: str) -> str:
 Por favor, extrae los datos y responde únicamente con un JSON que cumpla estrictamente con este esquema Pydantic:
 {schema_json}
 """
+

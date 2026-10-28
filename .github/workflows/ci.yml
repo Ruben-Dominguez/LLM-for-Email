@@ -32,3 +32,4 @@ jobs:
         DATABASE_URL: sqlite:///./test_ci.db
       run: |
         pytest -v
+

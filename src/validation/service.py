@@ -91,3 +91,4 @@ class InvoiceProcessingService:
         self.db.commit()
         self.db.refresh(invoice)
         return invoice
+

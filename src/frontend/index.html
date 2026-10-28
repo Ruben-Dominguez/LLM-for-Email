@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoInvoice AI - Validador Contable Inteligente</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            },
+            corporate: {
+              900: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    [v-cloak] { display: none; }
+    .fade-in { animation: fadeIn 0.25s ease-out forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="h-full font-sans text-slate-800 antialiased flex flex-col bg-slate-50 custom-scroll">
+
+  <!-- TOPBAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Titulo -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-lg font-bold tracking-tight text-slate-900">AutoInvoice <span class="text-emerald-600">AI</span></span>
+              <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">v1.0 ERP</span>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">Extracción Inteligente con LLM y Auditoría Contable SQL</p>
+          </div>
+        </div>
+
+        <!-- Estatus del Sistema y Acciones Globales -->
+        <div class="flex items-center space-x-3">
+          <!-- Status pill -->
+          <div id="system-status-badge" class="hidden md:flex items-center space-x-2 text-xs px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-600">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="system-status-text">Conectando al servidor...</span>
+          </div>
+
+          <!-- Boton Sincronizar Correos -->
+          <button onclick="syncEmails()" id="btn-sync" class="inline-flex items-center space-x-2 px-3.5 py-2 text-sm font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition shadow-sm hover:shadow active:scale-98">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>Sincronizar Correos</span>
+          </button>
+
+          <!-- Boton Descargar Excel -->
+          <a href="/api/v1/invoices/export/excel" class="inline-flex items-center space-x-2 px-3.5 py-2 text-sm font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm hover:shadow active:scale-98">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span class="hidden sm:inline">Descargar Excel</span>
+            <span class="sm:hidden">Excel</span>
+          </a>
+
+          <!-- Enlace a Swagger (Docs) para perfiles técnicos -->
+          <a href="/docs" target="_blank" title="Documentación de la API Swagger" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+            </svg>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- SECCION: TARJETAS DE METRICAS (KPIs) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      
+      <!-- Total Facturas -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Facturas Totales</p>
+          <h3 id="stat-total" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+          <span class="text-xs text-slate-400">Registradas en el ERP</span>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Aprobadas -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Aprobadas (Válidas)</p>
+          <div class="flex items-baseline space-x-2 mt-1">
+            <h3 id="stat-validated" class="text-2xl font-bold text-slate-900">0</h3>
+            <span id="stat-approval-rate" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0%</span>
+          </div>
+          <span class="text-xs text-slate-400">Listas para dispersión</span>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Rechazadas -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-rose-600 uppercase tracking-wider">Rechazadas</p>
+          <h3 id="stat-rejected" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+          <span class="text-xs text-slate-400">Inconsistencia fiscal/SQL</span>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Monto Total Validado -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Total Aprobado</p>
+          <h3 id="stat-amount" class="text-2xl font-bold text-slate-900 mt-1">$0.00</h3>
+          <span class="text-xs text-slate-400">Importe acumulado (MXN)</span>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECCION: SUBIDA DE FACTURA Y PRUEBAS RAPIDAS -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
+      
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Ingesta y Validación de Facturas</h2>
+          <p class="text-sm text-slate-500">Sube cualquier archivo de factura (PDF o TXT) o ejecuta una de las muestras precargadas con 1 clic.</p>
+        </div>
+        
+        <!-- Quick sample buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide mr-1">Probar Muestra:</span>
+          <button onclick="processSample('factura_valida_tech.txt')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center space-x-1.5 active:scale-95">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Válida (Tech)</span>
+          </button>
+          <button onclick="processSample('factura_valida_papeleria.txt')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center space-x-1.5 active:scale-95">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Válida (Papelería)</span>
+          </button>
+          <button onclick="processSample('factura_error_aritmetico.txt')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition flex items-center space-x-1.5 active:scale-95">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>Error Aritmético</span>
+          </button>
+          <button onclick="processSample('factura_proveedor_invalido.txt')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition flex items-center space-x-1.5 active:scale-95">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>Proveedor Desconocido</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Zone -->
+      <div 
+        id="drop-zone" 
+        class="relative border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-8 text-center bg-slate-50 hover:bg-emerald-50/20 transition cursor-pointer group"
+      >
+        <input type="file" id="file-input" class="hidden" accept=".pdf,.txt,.xml" onchange="handleFileSelect(event)">
+        
+        <div class="flex flex-col items-center justify-center space-y-3 pointer-events-none">
+          <div class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-emerald-600 group-hover:border-emerald-300 transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-800">
+              Arrastra tu factura aquí o <span class="text-emerald-600 hover:underline">explora tus archivos</span>
+            </p>
+            <p class="text-xs text-slate-500 mt-1">Soporta archivos PDF digitales, TXT y esquemas de facturación fiscal</p>
+          </div>
+        </div>
+
+        <!-- Spinner overlay durante procesamiento -->
+        <div id="upload-spinner" class="absolute inset-0 bg-white/90 rounded-xl flex items-center justify-center hidden backdrop-blur-xs">
+          <div class="flex items-center space-x-3 text-emerald-700 font-semibold text-sm">
+            <svg class="w-6 h-6 animate-spin text-emerald-600" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span id="upload-status-text">Extrayendo con IA y auditando en base de datos SQL...</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- SECCION: LISTADO Y FILTRO DE FACTURAS -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      
+      <!-- Toolbar de la tabla: Filtros y Buscador -->
+      <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        <!-- Pestañas de estado -->
+        <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600">
+          <button onclick="setFilter('ALL')" id="filter-tab-ALL" class="px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-xs transition">Todas</button>
+          <button onclick="setFilter('VALIDATED')" id="filter-tab-VALIDATED" class="px-3 py-1.5 rounded-lg hover:text-slate-900 transition">Aprobadas</button>
+          <button onclick="setFilter('REJECTED')" id="filter-tab-REJECTED" class="px-3 py-1.5 rounded-lg hover:text-slate-900 transition">Rechazadas</button>
+          <button onclick="setFilter('PENDING_REVIEW')" id="filter-tab-PENDING_REVIEW" class="px-3 py-1.5 rounded-lg hover:text-slate-900 transition">En Revisión</button>
+        </div>
+
+        <!-- Buscador en tiempo real -->
+        <div class="relative w-full md:w-72">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            id="search-input" 
+            oninput="handleSearch(event)"
+            placeholder="Buscar por proveedor, RFC o folio..." 
+            class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition bg-slate-50/50"
+          >
+        </div>
+
+      </div>
+
+      <!-- Tabla de Facturas -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-600">
+          <thead class="bg-slate-50/80 text-xs uppercase font-semibold text-slate-500 tracking-wider border-b border-slate-100">
+            <tr>
+              <th class="px-6 py-3.5">Folio / Archivo</th>
+              <th class="px-6 py-3.5">Proveedor & RFC</th>
+              <th class="px-6 py-3.5">Orden de Compra</th>
+              <th class="px-6 py-3.5">Fecha Emisión</th>
+              <th class="px-6 py-3.5 text-right">Importe Total</th>
+              <th class="px-6 py-3.5 text-center">Estado Auditoría</th>
+              <th class="px-6 py-3.5 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="invoices-tbody" class="divide-y divide-slate-100">
+            <!-- Filas inyectadas via JavaScript -->
+            <tr>
+              <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-slate-300 border-t-emerald-600 mr-2"></div>
+                Cargando facturas registradas...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL: DETALLE COMPLETO Y AUDITORIA SQL -->
+  <div id="detail-modal" class="fixed inset-0 z-50 overflow-y-auto hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-100 flex flex-col fade-in overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center space-x-3">
+          <div id="modal-status-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+            <!-- Badge -->
+          </div>
+          <div>
+            <h3 id="modal-title" class="text-lg font-bold text-slate-900">Detalle de Factura</h3>
+            <p id="modal-uuid" class="text-xs text-slate-400 font-mono">UUID: -</p>
+          </div>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-6 custom-scroll flex-1">
+        
+        <!-- Tarjetas resumen comercial -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Proveedor</span>
+            <p id="modal-vendor" class="text-sm font-bold text-slate-800">-</p>
+            <span id="modal-taxid" class="text-xs text-slate-500 font-mono">-</span>
+          </div>
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Orden de Compra</span>
+            <p id="modal-po" class="text-sm font-bold text-slate-800">-</p>
+          </div>
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Fecha de Emisión</span>
+            <p id="modal-date" class="text-sm font-semibold text-slate-800">-</p>
+          </div>
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Total Facturado</span>
+            <p id="modal-total" class="text-base font-bold text-slate-900">-</p>
+            <span id="modal-subtotals" class="text-xs text-slate-500">-</span>
+          </div>
+        </div>
+
+        <!-- Seccion: Auditoria de Reglas SQL -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+              <span>Auditoría de Reglas Contables (SQL)</span>
+            </h4>
+            <span class="text-xs text-slate-400">Consultas directas a tablas relacionales</span>
+          </div>
+
+          <div id="modal-rules-list" class="space-y-2">
+            <!-- Inyectado por JS -->
+          </div>
+        </div>
+
+        <!-- Seccion: Partidas y Clasificacion RAG -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+              <span>Conceptos & Clasificación Semántica (RAG)</span>
+            </h4>
+            <span class="text-xs text-slate-400">Asignación automática a catálogo de cuentas ERP</span>
+          </div>
+
+          <div class="border border-slate-200/80 rounded-xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 font-semibold text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th class="px-4 py-2.5">Descripción Concepto</th>
+                  <th class="px-4 py-2.5 text-center">Cant.</th>
+                  <th class="px-4 py-2.5 text-right">P. Unitario</th>
+                  <th class="px-4 py-2.5 text-right">Total</th>
+                  <th class="px-4 py-2.5">Cuenta Contable ERP (RAG)</th>
+                </tr>
+              </thead>
+              <tbody id="modal-items-tbody" class="divide-y divide-slate-100">
+                <!-- Inyectado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <button 
+          id="btn-revalidate"
+          onclick="revalidateCurrentInvoice()" 
+          class="inline-flex items-center space-x-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition shadow-xs active:scale-95"
+        >
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span>Revalidar Reglas SQL</span>
+        </button>
+
+        <button onclick="closeModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-white hover:bg-slate-900 transition">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    let allInvoices = [];
+    let currentFilter = 'ALL';
+    let searchQuery = '';
+    let currentInvoiceId = null;
+
+    // Inicialización al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      checkHealth();
+      loadInvoices();
+      setupDropZone();
+    });
+
+    // 1. Diagnóstico de Salud del Sistema
+    async function checkHealth() {
+      const badge = document.getElementById('system-status-badge');
+      const text = document.getElementById('system-status-text');
+      try {
+        const res = await fetch('/api/v1/health');
+        if (res.ok) {
+          const data = await res.json();
+          text.innerHTML = `DB: <strong class="text-slate-800">OK</strong> | LLM: <strong class="text-slate-800">${data.llm_provider.toUpperCase()}</strong> | Buzón: <strong class="text-slate-800">${data.email_source.toUpperCase()}</strong>`;
+        } else {
+          text.textContent = 'Servidor con advertencias';
+        }
+      } catch (err) {
+        text.textContent = 'Servidor fuera de línea';
+      }
+    }
+
+    // 2. Carga y Filtro de Facturas
+    async function loadInvoices() {
+      try {
+        const res = await fetch('/api/v1/invoices?limit=100');
+        if (!res.ok) throw new Error('Error al consultar facturas');
+        allInvoices = await res.json();
+        updateStats();
+        renderTable();
+      } catch (err) {
+        showToast('Error cargando listado: ' + err.message, 'error');
+      }
+    }
+
+    // 3. Renderizado de Estadísticas (KPIs)
+    function updateStats() {
+      const total = allInvoices.length;
+      const validated = allInvoices.filter(i => i.status === 'VALIDATED').length;
+      const rejected = allInvoices.filter(i => i.status === 'REJECTED').length;
+      const totalAmount = allInvoices
+        .filter(i => i.status === 'VALIDATED')
+        .reduce((sum, i) => sum + (i.total_amount || 0), 0);
+      const approvalRate = total > 0 ? Math.round((validated / total) * 100) : 0;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-validated').textContent = validated;
+      document.getElementById('stat-rejected').textContent = rejected;
+      document.getElementById('stat-approval-rate').textContent = `${approvalRate}%`;
+      document.getElementById('stat-amount').textContent = formatCurrency(totalAmount);
+    }
+
+    // 4. Renderizado de la Tabla Principal
+    function renderTable() {
+      const tbody = document.getElementById('invoices-tbody');
+      
+      let filtered = allInvoices;
+      if (currentFilter !== 'ALL') {
+        filtered = filtered.filter(inv => inv.status === currentFilter);
+      }
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(inv => 
+          (inv.invoice_number && inv.invoice_number.toLowerCase().includes(q)) ||
+          (inv.vendor_name && inv.vendor_name.toLowerCase().includes(q)) ||
+          (inv.vendor_tax_id && inv.vendor_tax_id.toLowerCase().includes(q)) ||
+          (inv.source_file && inv.source_file.toLowerCase().includes(q))
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+              No se encontraron facturas con los filtros aplicados.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(inv => {
+        const statusBadge = getStatusBadge(inv.status);
+        const vendorText = inv.vendor_name || 'Desconocido / No registrado';
+        const rfcText = inv.vendor_tax_id || 'Sin RFC';
+        const poText = inv.po_number || '<span class="text-slate-400 italic">Sin PO</span>';
+
+        return `
+          <tr class="hover:bg-slate-50/70 transition">
+            <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">
+              <div>${escapeHtml(inv.invoice_number || 'S/N')}</div>
+              <div class="text-xs text-slate-400 truncate max-w-[140px]">${escapeHtml(inv.source_file || 'Carga manual')}</div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="font-medium text-slate-800">${escapeHtml(vendorText)}</div>
+              <div class="text-xs font-mono text-slate-400">${escapeHtml(rfcText)}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-700">
+              ${poText}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-500">
+              ${inv.issue_date || '-'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right font-semibold text-slate-900">
+              ${formatCurrency(inv.total_amount, inv.currency)}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              ${statusBadge}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-xs font-medium space-x-2">
+              <button onclick="viewInvoiceDetail(${inv.id})" class="text-emerald-600 hover:text-emerald-800 hover:underline">
+                Ver Detalle
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 5. Configurar Filtros y Buscador
+    function setFilter(status) {
+      currentFilter = status;
+      ['ALL', 'VALIDATED', 'REJECTED', 'PENDING_REVIEW'].forEach(s => {
+        const el = document.getElementById(`filter-tab-${s}`);
+        if (s === status) {
+          el.className = 'px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-xs transition';
+        } else {
+          el.className = 'px-3 py-1.5 rounded-lg hover:text-slate-900 transition';
+        }
+      });
+      renderTable();
+    }
+
+    function handleSearch(e) {
+      searchQuery = e.target.value;
+      renderTable();
+    }
+
+    // 6. Sincronizar Correos con LLM
+    async function syncEmails() {
+      const btn = document.getElementById('btn-sync');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="w-4 h-4 animate-spin text-emerald-400" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Leyendo buzón...</span>
+      `;
+
+      try {
+        const res = await fetch('/api/v1/invoices/sync-emails?limit=10', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`Sincronización exitosa: ${data.processed_count} facturas procesadas.`, 'success');
+          await loadInvoices();
+        } else {
+          showToast(`Error al sincronizar: ${data.detail || 'Fallo de conexión'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Error de red: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+
+    // 7. Procesar Muestras con 1 Clic
+    async function processSample(filename) {
+      showUploadSpinner(`Procesando muestra "${filename}" con LLM & SQL...`);
+      try {
+        const res = await fetch(`/api/v1/invoices/samples/${filename}/process`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`Factura ${data.invoice_number} procesada con estatus: ${data.status}`, data.status === 'VALIDATED' ? 'success' : 'warning');
+          await loadInvoices();
+          viewInvoiceDetail(data.id);
+        } else {
+          showToast(`Error procesando muestra: ${data.detail || 'Fallo'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Error de red: ' + err.message, 'error');
+      } finally {
+        hideUploadSpinner();
+      }
+    }
+
+    // 8. Carga por Archivo Drag & Drop
+    function setupDropZone() {
+      const dropZone = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
+
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      ['dragenter', 'dragover'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          dropZone.classList.add('border-emerald-500', 'bg-emerald-50/30');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/30');
+        });
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          uploadFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files.length > 0) {
+        uploadFile(e.target.files[0]);
+        e.target.value = '';
+      }
+    }
+
+    async function uploadFile(file) {
+      showUploadSpinner(`Extrayendo "${file.name}" con IA Generativa...`);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/v1/invoices/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`Factura ${data.invoice_number} auditada: ${data.status}`, data.status === 'VALIDATED' ? 'success' : 'warning');
+          await loadInvoices();
+          viewInvoiceDetail(data.id);
+        } else {
+          showToast(`Error al subir: ${data.detail || 'No se pudo procesar'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Error de conexión: ' + err.message, 'error');
+      } finally {
+        hideUploadSpinner();
+      }
+    }
+
+    function showUploadSpinner(text) {
+      document.getElementById('upload-status-text').textContent = text;
+      document.getElementById('upload-spinner').classList.remove('hidden');
+    }
+
+    function hideUploadSpinner() {
+      document.getElementById('upload-spinner').classList.add('hidden');
+    }
+
+    // 9. Ver Detalle de Factura (Modal)
+    async function viewInvoiceDetail(id) {
+      currentInvoiceId = id;
+      try {
+        const res = await fetch(`/api/v1/invoices/${id}`);
+        if (!res.ok) throw new Error('No se pudo obtener el detalle');
+        const inv = await res.json();
+
+        // Titulo y Estado
+        document.getElementById('modal-title').textContent = `Factura ${inv.invoice_number || 'S/N'}`;
+        document.getElementById('modal-uuid').textContent = `UUID / Folio Fiscal: ${inv.uuid || 'N/A'}`;
+        
+        const badgeEl = document.getElementById('modal-status-badge');
+        if (inv.status === 'VALIDATED') {
+          badgeEl.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300';
+          badgeEl.textContent = 'Aprobada (Validada)';
+        } else if (inv.status === 'REJECTED') {
+          badgeEl.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-300';
+          badgeEl.textContent = 'Rechazada';
+        } else {
+          badgeEl.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300';
+          badgeEl.textContent = 'En Revisión';
+        }
+
+        // Resumen
+        document.getElementById('modal-vendor').textContent = inv.vendor_name || 'Desconocido';
+        document.getElementById('modal-taxid').textContent = inv.vendor_tax_id ? `RFC: ${inv.vendor_tax_id}` : 'RFC no registrado';
+        document.getElementById('modal-po').textContent = inv.po_number || 'Sin Orden de Compra';
+        document.getElementById('modal-date').textContent = inv.issue_date || 'No especificada';
+        document.getElementById('modal-total').textContent = formatCurrency(inv.total_amount, inv.currency);
+        document.getElementById('modal-subtotals').textContent = `Subtotal: ${formatCurrency(inv.subtotal)} | IVA: ${formatCurrency(inv.tax_amount)}`;
+
+        // Reglas SQL
+        const rulesList = document.getElementById('modal-rules-list');
+        if (!inv.validation_logs || inv.validation_logs.length === 0) {
+          rulesList.innerHTML = `<p class="text-xs text-slate-400 italic">No hay logs de validación registrados.</p>`;
+        } else {
+          rulesList.innerHTML = inv.validation_logs.map(log => {
+            const isOk = log.passed;
+            const bgClass = isOk ? 'bg-emerald-50/60 border-emerald-200' : 'bg-rose-50/60 border-rose-200';
+            const icon = isOk 
+              ? `<svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`
+              : `<svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+
+            const ruleFriendlyNames = {
+              'VENDOR_EXISTS_AND_ACTIVE': 'Verificación de Proveedor (Activo y Registrado)',
+              'DUPLICATE_CHECK': 'Detección de Duplicados (UUID / Folio)',
+              'PO_MATCH': 'Cruce con Orden de Compra (Tolerancia de Importe)',
+              'ARITHMETIC_CHECK': 'Cuadre Aritmético (Subtotal + Impuestos = Total)'
+            };
+
+            const ruleLabel = ruleFriendlyNames[log.rule_name] || log.rule_name;
+
+            return `
+              <div class="flex items-start space-x-3 p-3 rounded-xl border ${bgClass} text-xs">
+                ${icon}
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-800">${escapeHtml(ruleLabel)}</span>
+                    <span class="font-mono text-[10px] uppercase font-semibold ${isOk ? 'text-emerald-700' : 'text-rose-700'}">${isOk ? 'APROBADA' : 'FALLIDA'}</span>
+                  </div>
+                  <p class="text-slate-600 mt-0.5">${escapeHtml(log.message)}</p>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Partidas y Clasificacion RAG
+        const itemsTbody = document.getElementById('modal-items-tbody');
+        if (!inv.items || inv.items.length === 0) {
+          itemsTbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-slate-400">Sin partidas extraídas.</td></tr>`;
+        } else {
+          itemsTbody.innerHTML = inv.items.map(it => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-4 py-2.5 font-medium text-slate-800">${escapeHtml(it.description)}</td>
+              <td class="px-4 py-2.5 text-center text-slate-600 font-mono">${it.quantity}</td>
+              <td class="px-4 py-2.5 text-right text-slate-600 font-mono">${formatCurrency(it.unit_price)}</td>
+              <td class="px-4 py-2.5 text-right font-bold text-slate-900 font-mono">${formatCurrency(it.total_price)}</td>
+              <td class="px-4 py-2.5">
+                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md font-mono text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                  <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                  <span>${escapeHtml(it.accounting_account_code || 'Por asignar')}</span>
+                </span>
+              </td>
+            </tr>
+          `).join('');
+        }
+
+        // Abrir modal
+        document.getElementById('detail-modal').classList.remove('hidden');
+
+      } catch (err) {
+        showToast('Error cargando detalle: ' + err.message, 'error');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('detail-modal').classList.add('hidden');
+      currentInvoiceId = null;
+    }
+
+    async function revalidateCurrentInvoice() {
+      if (!currentInvoiceId) return;
+      const btn = document.getElementById('btn-revalidate');
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/v1/invoices/${currentInvoiceId}/revalidate`, { method: 'POST' });
+        if (res.ok) {
+          showToast('Factura revalidada contra la base de datos.', 'success');
+          await loadInvoices();
+          await viewInvoiceDetail(currentInvoiceId);
+        } else {
+          showToast('Error al revalidar', 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Helpers
+    function getStatusBadge(status) {
+      if (status === 'VALIDATED') {
+        return `<span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span><span>Aprobada</span></span>`;
+      }
+      if (status === 'REJECTED') {
+        return `<span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200"><span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span><span>Rechazada</span></span>`;
+      }
+      return `<span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span><span>En Revisión</span></span>`;
+    }
+
+    function formatCurrency(val, currency = 'MXN') {
+      if (val === null || val === undefined) return '$0.00';
+      return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: currency || 'MXN',
+      }).format(val);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const colors = {
+        success: 'bg-emerald-900/90 text-white border-emerald-700',
+        error: 'bg-rose-900/90 text-white border-rose-700',
+        warning: 'bg-amber-900/90 text-white border-amber-700',
+        info: 'bg-slate-900/90 text-white border-slate-700',
+      };
+
+      toast.className = `px-4 py-3 rounded-xl shadow-lg border text-xs font-medium backdrop-blur-md fade-in pointer-events-auto max-w-sm flex items-center justify-between space-x-3 ${colors[type] || colors.info}`;
+      toast.innerHTML = `
+        <span>${escapeHtml(message)}</span>
+        <button onclick="this.parentElement.remove()" class="text-white/60 hover:text-white">&times;</button>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 4000);
+    }
+  </script>
+
+</body>
+</html>
+
