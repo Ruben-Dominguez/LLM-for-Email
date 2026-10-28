@@ -1,0 +1,35 @@
+======================================================================
+COMPROBANTE FISCAL DIGITAL POR INTERNET (CFDI 4.0) - FACTURA COMERCIAL
+======================================================================
+EMISOR:
+Razón Social: Tech Solutions & Cloud Services S.A. de C.V.
+RFC: TSO150210XYZ
+Régimen Fiscal: 601 - General de Ley Personas Morales
+Dirección: Av. Insurgentes Sur 1200, Col. Del Valle, Benito Juárez, CDMX
+
+RECEPTOR:
+Razón Social: Finanzas y Operaciones Corporativas S.A.
+RFC: FOC200101XYZ
+Uso CFDI: G03 - Gastos en general
+
+DATOS DEL COMPROBANTE:
+Folio Fiscal (UUID): 550e8400-e29b-41d4-a716-446655440001
+Número de Factura: FAC-2026-901
+Orden de Compra (PO): PO-2026-101
+Fecha de Emisión: 2026-10-25T10:00:00
+Moneda: MXN
+Forma de Pago: 99 - Por definir
+Método de Pago: PPD - Pago en parcialidades o diferido
+
+CONCEPTOS:
+----------------------------------------------------------------------
+Clave Prod | Cantidad | Unidad | Descripción | P. Unitario | Importe
+81112200   | 1.00     | E48    | Licencias anuales de software ERP en la nube | $20,000.00 | $20,000.00
+----------------------------------------------------------------------
+
+SUBTOTAL: $20,000.00
+IMPUESTOS TRASLADADOS (IVA 16%): $3,200.00
+TOTAL: $23,200.00
+
+Sello Digital del CFDI:
+ABC123XYZ456DEF789GHI012JKL345MNO678PQR901STU234VWX567YZA==

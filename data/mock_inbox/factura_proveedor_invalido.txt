@@ -1,0 +1,26 @@
+======================================================================
+COMPROBANTE FISCAL DIGITAL POR INTERNET (CFDI 4.0) - FACTURA COMERCIAL
+======================================================================
+EMISOR:
+Razón Social: Proveedor Fantasma No Registrado S.A.
+RFC: FAN999999999
+
+RECEPTOR:
+Razón Social: Finanzas y Operaciones Corporativas S.A.
+RFC: FOC200101XYZ
+
+DATOS DEL COMPROBANTE:
+Folio Fiscal (UUID): 550e8400-e29b-41d4-a716-446655440004
+Número de Factura: FAC-2026-904
+Fecha de Emisión: 2026-10-27T12:00:00
+Moneda: MXN
+
+CONCEPTOS:
+----------------------------------------------------------------------
+Cantidad | Descripción | P. Unitario | Importe
+1.00     | Servicios de Consultoría General | $15,000.00 | $15,000.00
+----------------------------------------------------------------------
+
+SUBTOTAL: $15,000.00
+IMPUESTOS TRASLADADOS (IVA 16%): $2,400.00
+TOTAL: $17,400.00

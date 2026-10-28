@@ -1,0 +1,29 @@
+======================================================================
+COMPROBANTE FISCAL DIGITAL POR INTERNET (CFDI 4.0) - FACTURA COMERCIAL
+======================================================================
+EMISOR:
+Razón Social: Papelería y Suministros Corporativos del Centro
+RFC: PSO041120AB1
+Régimen Fiscal: 601 - General de Ley Personas Morales
+
+RECEPTOR:
+Razón Social: Finanzas y Operaciones Corporativas S.A.
+RFC: FOC200101XYZ
+
+DATOS DEL COMPROBANTE:
+Folio Fiscal (UUID): 550e8400-e29b-41d4-a716-446655440002
+Número de Factura: FAC-2026-902
+Orden de Compra (PO): PO-2026-102
+Fecha de Emisión: 2026-10-26T14:30:00
+Moneda: MXN
+
+CONCEPTOS:
+----------------------------------------------------------------------
+Cantidad | Descripción | P. Unitario | Importe
+50.00    | Cajas de papel bond tamaño carta para oficina | $80.00 | $4,000.00
+20.00    | Tóner para impresora láser corporativa       | $50.00 | $1,000.00
+----------------------------------------------------------------------
+
+SUBTOTAL: $5,000.00
+IMPUESTOS TRASLADADOS (IVA 16%): $800.00
+TOTAL: $5,800.00

@@ -1,0 +1,28 @@
+======================================================================
+COMPROBANTE FISCAL DIGITAL POR INTERNET (CFDI 4.0) - FACTURA COMERCIAL
+======================================================================
+EMISOR:
+Razón Social: Tech Solutions & Cloud Services S.A. de C.V.
+RFC: TSO150210XYZ
+
+RECEPTOR:
+Razón Social: Finanzas y Operaciones Corporativas S.A.
+RFC: FOC200101XYZ
+
+DATOS DEL COMPROBANTE:
+Folio Fiscal (UUID): 550e8400-e29b-41d4-a716-446655440003
+Número de Factura: FAC-2026-903
+Orden de Compra (PO): PO-2026-101
+Fecha de Emisión: 2026-10-27T11:00:00
+Moneda: MXN
+
+CONCEPTOS:
+----------------------------------------------------------------------
+Cantidad | Descripción | P. Unitario | Importe
+1.00     | Mantenimiento de Servidores | $10,000.00 | $10,000.00
+----------------------------------------------------------------------
+
+# Error inducido: Las sumas no cuadran (el subtotal reportado es 15,000 en vez de 10,000)
+SUBTOTAL: $15,000.00
+IMPUESTOS TRASLADADOS (IVA 16%): $1,600.00
+TOTAL: $25,000.00
